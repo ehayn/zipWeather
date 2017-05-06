@@ -1,0 +1,115 @@
+<!doctype html>
+<!-- 
+Ethan Hayn
+Created: 5/6/17
+Last Update: 5/7/17
+Early Career Candidate Dev Project
+Utilizes Open Weather Map API: https://openweathermap.org
+-->
+<html lang="en">
+	<!-- Bootstrap core CSS -->
+    <link href="dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap theme -->
+    <link href="dist/css/bootstrap-theme.min.css" rel="stylesheet">
+	<!-- Custom Weather App Themes -->
+    <link href="dist/css/weather.css" rel="stylesheet">
+	
+	<link rel="shortcut icon" href="icons/favicon.ico"/>	
+	<head>
+	  <title>zipWeather</title>
+	</head>
+	
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+	<script src="dist/js/scripts.js"></script>
+	<script>	  
+		function findWeather(){
+			zipcode = $("#zipcode").val();
+			var apiCall = 'http://api.openweathermap.org/data/2.5/weather?zip='+zipcode+',us&appid=a70c517722feb5165328c0f825caf0c4';
+			$.getJSON(apiCall, function(data) {
+				console.log(data);//for debugging			
+				iconPath = "icons/"+data.weather[0].icon+".png";//grab corresponding icon
+				temp = convertKelvin(data.main.temp);//API returns Kelvin, convert to chosen standard here
+				windSpeed = ((data.wind.speed) * 2.2369).toFixed(1);//convert meters/sec to miles/hour
+				windSpeed = windSpeed + " mph";
+				windDirection = "transform: rotate("+data.wind.deg+"deg);";//rotation for wind direction applied to windDirection.png
+				$("#humidityLabel").html("Humidity: " + data.main.humidity + "%");
+				$("#cloudinessLabel").html("Cloud Cover: " + data.clouds.all + "%");
+				$("#windSpeedLabel").html(windSpeed);
+				$("#windDirection").attr("style",windDirection);
+				$("#conditionLabel").html(weatherCodes[data.weather[0].id]);
+				$("#tempLabel").html(temp);
+				$("#icon").attr("src",iconPath); 
+				$("#countyLabel").html(data.name);
+				
+			});
+		}//end findWeather()
+		
+		function celsiusToFahrenheit(){//Change the current standard
+			temp = document.getElementById('tempLabel').textContent;
+			temp = temp.slice(0, -2);//cuts of the '°C' characters
+			if(document.getElementById('tempStandard').checked){//Celsius selected
+				temp = ((temp - 32)*(5/9)).toFixed(0);
+				temp = temp + "°C";
+			}
+			else{//Fahrenheit selected
+				temp = ((temp*(9/5))+(32)).toFixed(0);
+				temp = temp + "°F";
+			}
+			$("#tempLabel").html(temp);
+			return temp;
+		}//end celsiusToFahrenheit()
+		
+		function convertKelvin(kelvin){
+			if(document.getElementById('tempStandard').checked){//Celsius selected
+				temp = (kelvin - 273.15).toFixed(0);
+				temp = temp + "°C";
+				return temp;
+			}
+			else{//Fahrenheit selected
+				temp = ((kelvin) * (9/5) - 459.67).toFixed(0);
+				temp = temp + "°F";
+				return temp;
+			}
+		}//end convertKelvin()	  
+	</script>
+	
+	<body onload="findWeather();">
+		<div class="panel panel-primary" style="display:inline-block;margin:auto;">
+			<div class="panel-heading">
+				<h3 id="countyLabel">County</h3>
+			</div>
+			<div id="selection" class="panel-body" style="text-align:center;">
+				<div class="inner-panel">
+					<image id="icon" src="icons/01d.png" class="weather-condition"></image></br>
+					<div style="text-align:left;">
+						<label id="tempLabel">45°F</label></br>
+						<label id="conditionLabel">Sunny</label>
+					</div>
+				</div>
+				<div class="inner-panel">
+					<div id="windContainer" style="position:relative;">
+						<image id="windDial" src="icons/windDial.png" class="wind-dial"></image>
+						<image id="windDirection" src="icons/windDirection.png" class="wind-direction"></image></br>
+					</div>
+					<div style="text-align:left;">
+						<label id="windSpeedLabel">11 mph</label></br>
+						<label id="humidityLabel">Humidity: 43%</label></br>
+						<label id="cloudinessLabel">Cloud Cover: 70%</label>
+					</div>
+				</div>
+				<div style="padding-top:20px;">
+					<label style="font-size:275%">°F</label>
+					<label class="switch">
+						<input id="tempStandard" type="checkbox" onclick="celsiusToFahrenheit();">
+						<div class="slider"></div>
+					</label>
+					<label style="font-size:275%;padding-right:15px">°C</label>
+					<form style="display:inline-block">
+						<input type="text" style="font-size:275%;" id="zipcode" value="37188" name="zipcode" placeholder="Enter Zipcode"></input>
+						<button type="button" class="search" onclick="findWeather();"><img src="icons/search.png" style="height:45px"></button>
+					</form>
+				</div>
+			</div>				
+		</div>
+	</body>	
+</html>
